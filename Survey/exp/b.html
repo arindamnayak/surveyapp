@@ -1,0 +1,30 @@
+<script src='https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.9.1.min.js'></script>
+<script src='http://ajax.aspnetcdn.com/ajax/mobileservices/MobileServices.Web-1.2.2.min.js'></script>
+		Azure Mobile Demo
+<script>
+    var client = new WindowsAzure.MobileServiceClient(
+        "https://onlinesurvey.azure-mobile.net/",
+        "UerjktlqsMTTHKDSJzwTRvAixvsyHn94"
+    );
+    var responsetbl = client.getTable('Response');
+    //client.invokeApi('saveresponse', {
+    //    method: 'POST',
+    //    body: { surveyid: '3197D692-12A4-4C7C-8E38-B77F549A9D01', pollid: '2D170A84-26AA-4726-8A30-3764634C7EDA', ua: "chrome", deviceid: "arindam-pc" }
+    //}).done(function (response) {
+    //    console.log(response);
+    //    console.log(response.result.message);
+    //}, function (error) {
+    //    var xhr = error.request;
+    //    console.log('Error - status code: ' + xhr.status + '; body: ' + xhr.responseText);
+    //});
+    responsetbl.insert({ responsedevice: 'arindam-cpu',
+        useragent: navigator.userAgent,
+        pollid: 'B3409932-0EB6-4B4B-91EE-1257FE316989',
+        ipaddress: "NOTASSIGNED", surveyid: '3197D692-12A4-4C7C-8E38-B77F549A9D01'
+    }).then(success, handleError);
+    function handleError(error) {
+        var text = error + (error.request ? ' - ' + error.request.status : '');
+        $('#errorlog').append($('<li>').text(text));
+    }
+    function success() { };
+</script>

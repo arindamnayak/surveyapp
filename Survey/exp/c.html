@@ -1,0 +1,130 @@
+<html>
+<head>
+    <title>Hello</title>
+    <script src="http://localhost/tmadmin.net/include/jquery-latest.min.js" type="text/javascript"></script>
+    <script src="http://localhost/tmadmin.net/include/kendo.dataviz.min.js" type="text/javascript"></script>
+    <link href="http://localhost/tmadmin.net/Style/kendo.dataviz.min.css" rel="stylesheet" type="text/css" />
+   
+
+
+    
+    <script type="text/javascript">
+
+        function Redraw() {
+            var chart = $("#chart").data("kendoChart");
+            chart.options.series = [{ "name": "Newly Identified", "data": [1, 0, 0, 1, 1, 0, 0] }, { "name": "Identified", "data": [1, 2, 3, 3, 1, 1, 0] }];
+            chart.refresh();
+        }
+        function onSeriesClick(e) {
+            console.log(e);
+            alert("Clicked value: " + e.category + e.series.name);
+        }
+        var sharedDataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "https://onlinesurvey.azure-mobile.net/api/getresponse?surveyid=3E700167-94C2-4D78-BBFD-5585AE193E5A"",
+                    dataType: "json",
+                    success: function () { console.log("success"); }
+                }, requestStart: function () {
+                    kendo.ui.progress($("#loading"), true);
+                },
+                requestEnd: function () {
+                    kendo.ui.progress($("#loading"), false);
+
+                }
+            }
+        });
+        function createChart(data) {
+            $("#chart").kendoChart({
+                theme: $(document).data("kendoSkin") || "default",
+                dataSource: sharedDataSource,
+                renderAs: "canvas",
+                title: {
+                    text: "Survey Submissions"
+                },
+                legend: {
+                    position: "top"
+                },
+                seriesDefaults: {
+                    type: "column",
+                    column: {
+                        color: "#9FBFE5"
+                    }
+                },
+                series:
+                        [{
+                            field: "count",
+                            name: "Submissions"
+                        }],
+                categoryAxis: {
+                    field: "optiontext",
+                    labels: {
+                        rotation: 0
+                    }
+                },
+                valueAxis: {
+                    labels: {
+                        format: "N0"
+                    }
+
+                },
+                tooltip: {
+                    visible: true,
+                    format: "N0",
+                    template: "#= dataItem.optiontext + ' - '  + value #"
+                }
+            });
+        }
+
+        function changechart() {
+            var chart = $("#chart").data("kendoChart");
+            // chart.options.series[0].data[1] = "4";
+
+            chart.options.series[0].data[2].submission = 5
+            chart.redraw();
+        }
+    </script>
+</head>
+<body>
+    <form id="form1">
+        <div>
+            <input type="button" value="Redraw" onclick="Redraw();" />
+            <input type="button" value="changevalue" onclick="changechart()" />
+            <div id="chart" style="width: 725px; height: 275px; border: 10px solid rgb(204, 204, 204);">
+            </div>
+
+            <script src="http://js.pusher.com/2.2/pusher.min.js" type="text/javascript"></script>
+            <script type="text/javascript">
+
+                var pusher = new Pusher('18dcc706fc62f579f809');
+                var channel = pusher.subscribe('surveychannel_3197D692-12A4-4C7C-8E38-B77F549A9D01');
+                channel.bind('OnResponse', function (data) {
+                    console.log(data);
+                    var pollid = data.pollid;
+
+                    var chart = $("#chart").data("kendoChart");
+                    chart.options.transitions = false;
+                    for (var i = 0; i < chart.options.series[0].data.length; i++) {
+                        if (chart.options.series[0].data[i].id == pollid) {
+                            chart.options.series[0].data[i].count = chart.options.series[0].data[i].count + 1;
+                            chart.refresh();
+                            return;
+                        }
+                    }
+                });
+            </script>
+            <script type="text/javascript">
+
+                var data = [{ "optiontext": "low", "submission": "4" }, { "optiontext": "medium", "submission": "8" }, { "optiontext": "high", "submission": "1" }];
+                $(document).ready(function () {
+                    setTimeout(function () {
+                        createChart();
+                        //CreateBarChart(["2", "8", "3"], ["low", "med", "high"], "Survey", "Submissions", "chart", "Ooptions", "0");
+                    }, 400);
+                });
+            </script>
+        </div>
+    </form>
+
+</body>
+</html>

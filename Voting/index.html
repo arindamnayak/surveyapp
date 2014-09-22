@@ -1,0 +1,361 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+    <meta name=" description" content="">
+    <meta name="author" content="">
+
+    <title>Voter Management</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../Resource/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="../Resource/css/logo-nav.css" rel="stylesheet">
+
+    <script src="../Resource/js/jquery-1.11.0.js"></script>
+    <!--<script src='https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.9.1.min.js'></script>-->
+    <script src='http://ajax.aspnetcdn.com/ajax/mobileservices/MobileServices.Web-1.2.2.min.js'></script>
+
+    <script type="text/javascript" src="http://akquinet.github.io/jquery-toastmessage-plugin/demo/jquery.toastmessage-min.js"></script>
+
+
+    <script src="../Resource/js/kendo.dataviz.min.js" type="text/javascript"></script>
+    <link href="../Resource/css/kendo.dataviz.min.css" rel="stylesheet" type="text/css" />
+
+    <link rel="stylesheet" href="http://akquinet.github.io/jquery-toastmessage-plugin/demo/css/jquery.toastmessage-min.css" />
+    <script src="http://js.pusher.com/2.2/pusher.min.js" type="text/javascript"></script>
+
+    <script src="../Resource/js/loader.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="http://cdn.kendostatic.com/2013.3.1324/styles/kendo.mobile.all.min.css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <style type="text/css">
+        body {
+            padding-top: 51px;
+        }
+
+        .text-center {
+            padding-top: 20px;
+        }
+
+        .col-xs-12 {
+            background-color: #fff;
+        }
+
+        #sidebar {
+            height: 100%;
+            padding-right: 0;
+            padding-top: 20px;
+        }
+
+
+
+            #sidebar .nav {
+                width: 95%;
+            }
+
+            #sidebar li {
+                border: 0 #f2f2f2 solid;
+                border-bottom-width: 1px;
+            }
+
+        /* collapsed sidebar styles */
+        @media screen and (max-width: 767px) {
+            .row-offcanvas {
+                position: relative;
+                -webkit-transition: all 0.25s ease-out;
+                -moz-transition: all 0.25s ease-out;
+                transition: all 0.25s ease-out;
+            }
+
+            .row-offcanvas-right .sidebar-offcanvas {
+                right: -41.6%;
+            }
+
+            .row-offcanvas-left .sidebar-offcanvas {
+                left: -41.6%;
+            }
+
+            .row-offcanvas-right.active {
+                right: 41.6%;
+            }
+
+            .row-offcanvas-left.active {
+                left: 41.6%;
+            }
+
+            .sidebar-offcanvas {
+                position: absolute;
+                top: 0;
+                width: 41.6%;
+            }
+
+            #sidebar {
+                padding-top: 0;
+            }
+
+            .k-chart {
+                height: 200px !important;
+                width: 300px !important;
+            }
+        }
+    </style>
+    <script type="text/javascript">
+        function createChart(data) {
+            $("#chart").kendoChart({
+                theme: $(document).data("kendoSkin") || "default",
+                dataSource: data,
+                renderAs: "canvas",
+                title: {
+                    text: "Survey Submissions"
+                },
+                legend: {
+                    position: "top"
+                },
+                seriesDefaults: {
+                    type: "column",
+                    column: {
+                        color: "#9FBFE5"
+                    }
+                },
+                series:
+                        [{
+                            field: "count",
+                            name: "Submissions"
+                        }],
+                categoryAxis: {
+                    field: "optiontext",
+                    labels: {
+                        rotation: 0
+                    }
+                },
+                valueAxis: {
+                    labels: {
+                        format: "N0"
+                    }
+
+                },
+                tooltip: {
+                    visible: true,
+                    format: "N0",
+                    template: "#= dataItem.optiontext + ' - '  + value #"
+                }
+            });
+        }
+    </script>
+
+</head>
+
+<body>
+
+    <div class="page-container">
+
+        <!-- top navbar -->
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="offcanvas" data-target=".sidebar-nav">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">Vote</a>
+                </div>
+            </div>
+        </div>
+        <div id="dvLoading">
+        </div>
+        <div class="container">
+            <div class="row row-offcanvas row-offcanvas-left">
+
+                <!-- sidebar -->
+                <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
+                    <ul class="nav" id="surveylist">
+                        <!--<li class="active"><a href="#">Home</a></li>
+                        <li><a href="#">Link 1</a></li>
+                        <li><a href="#">Link 2</a></li>
+                        <li><a href="#">Link 3</a></li>-->
+                    </ul>
+                </div>
+
+                <!-- main area -->
+                <div class="col-xs-12 col-sm-9">
+                    <h1>Please select a survey from left</h1>
+
+                    <div id="surveyplaceholder" style="display:none">
+                        <form role="form">
+                            <div class="form-group">
+                                <label class="control-label">Question</label>
+                                <div>
+                                    <p class="form-control-static" id="questiontext"></p>
+                                </div>
+                            </div>
+                            <div class="form-group" id="optionlist">
+
+                            </div>
+                            <button type="button" class="btn btn-default" onclick='Submit();' id="btnSubmit">Submit</button>
+                            <input type="hidden" id="selectedsurveyid" />
+                        </form>
+                    </div>
+                    <br />
+                    <br />
+                    <div id="resultplaceholder" style="display:none">
+                        <div id="chart" style="width: 600px; height: 400px; border: 5px solid rgb(204, 204, 204);border-radius:2px;"></div>
+                    </div>
+                </div><!-- /.col-xs-12 main -->
+            </div>
+            <!--/.rowquestiontext
+            </div><!--/.container-->
+        </div><!--/.page-container-->
+
+        <script type="text/javascript">
+            // Replace MOBILE_SVC_NAME , API_KEY with your values from Azure portal
+            var client = new WindowsAzure.MobileServiceClient(
+                  "https://[MOBILE_SVC_NAME].azure-mobile.net/",
+                  "API_KEY"
+              );
+            var pusher;
+            var channel;
+            var surveys = client.getTable('Survey');
+            $(document).ready(function () {
+                $('[data-toggle=offcanvas]').click(function () {
+                    $('.row-offcanvas').toggleClass('active');
+                });
+                ShowLoader();
+                surveys.read().then(function (survey) {
+                    var surveylist = $.map(survey, function (item) {
+                        return $('<li>')
+                            .append($('<a href="#" onclick="ShowSurvey(this);" sid=' + item.id + '> ' + item.questiontext + '</a>'));
+                    });
+                    $('#surveylist').empty().append(surveylist);
+                    HideLoader();
+                }, handleError);
+                ResetData();
+            });
+            function ResetData() {
+                $("#surveyplaceholder").hide();
+                $("#resultplaceholder").hide();
+                $("#chart").html("");
+                channel = undefined;
+                pusher = undefined;
+            }
+            function handleError() { }
+            function ShowSurvey(element) {
+                ShowLoader();
+                $(element).parent().removeClass("active").addClass("active");
+                ResetData();
+                var surveyid = $(element).attr("sid");
+                $("#selectedsurveyid").val(surveyid);
+                $("input[type=radio]").removeAttr("disabled");
+                $("#btnSubmit").removeAttr("disabled");
+                $("#optionlist").show();
+                $("#btnSubmit").show();
+                var surveyquestion = surveys.where({ id: surveyid });
+                surveyquestion.read().then(function (result) {
+                    $("#questiontext").html(result[0].questiontext);
+                });
+                $.get("https://[MOBILE_SVC_NAME].azure-mobile.net/api/getpolls?surveyid=" + surveyid).success(function (data) {
+                    var surveylist = $.map(data, function (item) {
+                        return '<div class="radio">' +
+                                    '<label> ' +
+                                        '<input type="radio" name="optionsRadios" id="' + item.id + '" value="' + item.id + '">' +
+                                        item.optiontext +
+                                    '</label' +
+                                '</div>';
+                    });
+                    $('#optionlist').empty().append(surveylist);
+                    HideLoader();
+                    $("#surveyplaceholder").fadeIn();
+                });
+
+            }
+            function Submit() {
+                ShowLoader();
+                var surveyid = $("#selectedsurveyid").val();
+                var pollid = $("input[type=radio]:checked").val();
+                var responsetbl = client.getTable('Response');
+                responsetbl.insert({
+                    responsedevice: 'cpuid',
+                    useragent: navigator.userAgent,
+                    pollid: pollid,
+                    ipaddress: "NOTASSIGNED", surveyid: surveyid
+                }).then(success, handleError);
+                function handleError(error) {
+                    var text = error + (error.request ? ' - ' + error.request.status : '');
+                    $().toastmessage('showErrorToast', "Sorry, you are not in, please try again!");
+                    HideLoader();
+                }
+                function success() {
+                    $().toastmessage('showSuccessToast', "Thanks for voting.");
+                    $("input[type=radio]").attr("disabled", "disabled");
+                    $("#btnSubmit").attr("disabled", "disabled");
+                    HideLoader();
+                    ShowGraph();
+                };
+            }
+            function ShowGraph() {
+                var surveyid = $("#selectedsurveyid").val();
+                pusher = new Pusher('[PUSHER_APP_ID]'); // replace pusher app id here
+                channel = pusher.subscribe('surveychannel_' + surveyid);
+                BindChannel();
+                var dtsource = new kendo.data.DataSource({
+                    transport: {
+                        read: {
+                            url: "https://onlinesurvey.azure-mobile.net/api/getresponse?surveyid=" + surveyid,
+                            dataType: "json"
+                        }
+                    }
+                });
+                createChart(dtsource);
+                $("#resultplaceholder").fadeIn();
+
+                OnShowGraph();
+            }
+            function OnShowGraph() {
+                var question = $("#questiontext").parent().text();
+                question = question + "<br/> Your answer - " + $("#optionlist input[type=radio]:checked").parent().text();
+                $("#questiontext").parent().parent().html(question);
+                $("#optionlist").hide();
+                $("#btnSubmit").hide();
+                var scrollpos = window.screen.availWidth - $("#surveyplaceholder").offset().top;
+                $('html, body').animate({
+                    scrollTop: scrollpos
+                }, 200);
+            }
+        </script>
+
+
+        <script type="text/javascript">
+            function BindChannel() {
+
+                channel.bind('OnResponse', function (data) {
+                    console.log(data);
+                    var pollid = data.pollid;
+
+                    var chart = $("#chart").data("kendoChart");
+                    chart.options.transitions = false;
+                    for (var i = 0; i < chart.options.series[0].data.length; i++) {
+                        if (chart.options.series[0].data[i].id == pollid) {
+                            chart.options.series[0].data[i].count = chart.options.series[0].data[i].count + 1;
+                            chart.refresh();
+                            return;
+                        }
+                    }
+                });
+            }
+        </script>
+    </div>
+
+</body>
+
+</html>

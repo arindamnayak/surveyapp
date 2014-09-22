@@ -1,0 +1,21 @@
+<script src='https://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.9.1.min.js'></script>
+<script src='http://ajax.aspnetcdn.com/ajax/mobileservices/MobileServices.Web-1.2.2.min.js'></script>
+		Azure Mobile Demo
+<script>
+var client = new WindowsAzure.MobileServiceClient(
+    "https://onlinesurvey.azure-mobile.net/",
+    "UerjktlqsMTTHKDSJzwTRvAixvsyHn94"
+);
+client.invokeApi('createsurvey', {
+    method: 'POST',
+    body: { surveyquestion: 'How much i know about azure  11111 ?', polls: ['low 11','medium  1','high 11'] }
+}).done(function (response) {
+	console.log(response);
+   console.log( response.result.message );
+}, function (error) {
+    var xhr = error.request;
+    console.log('Error - status code: ' + xhr.status + '; body: ' + xhr.responseText);
+});
+//https://onlinesurvey.azure-mobile.net/api/getresponse?surveyid=3197D692-12A4-4C7C-8E38-B77F549A9D01
+    //https://onlinesurvey.azure-mobile.net/api/getpolls?surveyid=A9F4D1FD-B543-483E-AEF6-B222D63DDBE0
+</script>
