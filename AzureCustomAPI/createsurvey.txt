@@ -1,0 +1,64 @@
+var SendGrid = require('sendgrid').SendGrid; // used for mail sending
+exports.post = function (request, response) {
+    // Use "request.service" to access features of your mobile service, e.g.:
+    //   var tables = request.service.tables;
+    //   var push = request.service.push;
+    var tables = request.service.tables;
+    var surveyquestion = request.body.surveyquestion;
+    var k = "";
+    var surveyid_generated = "";
+    var pollid_generated = "";
+    var username = request.service.config.appSettings.sendgrid_username;
+    var password = request.service.config.appSettings.sendgrid_password;
+    
+    var u = request.user.userId;
+    var userinfo = u.split(":");
+    var provider = userinfo[0];
+    var userId = userinfo[1];
+       
+    console.log(request.user);
+    //Insert to Survey , to get SurveyID
+    request.service.tables.getTable('Survey').insert({ questiontext: surveyquestion, notificationemail: request.body.notificationemail , userid: userId }, {
+        success: function (data) {
+            surveyid_generated = data.id;
+            for (var i = 0; i < request.body.polls.length; i++) {
+                // Insert to Polls, to get PollId
+                request.service.tables.getTable('Polls').insert({ optiontext: request.body.polls[i] }, {
+                    success: function (polldata) {
+                        pollid_generated = polldata.id;
+                        // Insert to surveymapping
+                        request.service.tables.getTable('SurveyPollMapping').insert({ surveyid: surveyid_generated, pollid: pollid_generated }, {
+                            success: function (mapdata) {
+                                // success handler for mapping
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Send mail , after survey creation
+            sendEmail(surveyquestion, surveyid_generated, username, password, request.body.notificationemail);
+        }
+    });
+
+    response.send(statusCodes.OK, { message: 'Survey created', data1: surveyquestion });
+};
+
+function sendEmail(SurveyQuestion, SurveyId,UserName,Password,ToEmail) {
+    if (ToEmail && ToEmail == "") return;
+    var sendgrid = new SendGrid(UserName, Password);
+
+    sendgrid.send({
+        to: ToEmail,
+        from: 'from_your_email@domain.com',
+        subject: 'New Survey created',
+        text: 'Survey: ' + SurveyQuestion 
+    }, function (success, message) {
+        // If the email failed to send, log it as an error so we can investigate
+        
+    });
+}
+
+exports.get = function (request, response) {
+    response.send(statusCodes.OK, { message: 'Hello World!' });
+};

@@ -1,0 +1,18 @@
+exports.post = function(request, response) {
+    // Use "request.service" to access features of your mobile service, e.g.:
+    //   var tables = request.service.tables;
+    //   var push = request.service.push;
+
+    response.send(statusCodes.OK, { message : 'Hello World!' });
+};
+
+exports.get = function(request, response) {
+    var surveyid = request.query.surveyid;
+    var msql = request.service.mssql;
+    var sql = "EXEC GetSurveyResponse ?";
+    msql.query(sql, surveyid, {
+        success: function (results) {
+            response.send(statusCodes.OK, results);
+        }
+    });
+};

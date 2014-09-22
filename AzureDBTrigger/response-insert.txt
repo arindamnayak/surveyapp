@@ -1,0 +1,26 @@
+var Pusher = require('pusher');
+function insert(item, user, request) {   
+
+    request.execute({
+        success: function() {
+            // After the record has been inserted, trigger immediately to the client
+            request.respond();
+
+            // Publish event for all other active clients
+            SendPushNotification(item);
+        }
+    });
+
+    function SendPushNotification(item) {
+
+        // Ideally these settings would be taken from config
+        var pusher = new Pusher({
+          appId: 'PUSHER_APP_ID',
+          key: 'PUSHER_API_KEY',
+          secret: 'PUSHER_SECRET'
+        });     
+
+        // Publish event on Pusher channel
+        pusher.trigger( 'surveychannel_'+item.surveyid, 'OnResponse', item );   
+    }
+}

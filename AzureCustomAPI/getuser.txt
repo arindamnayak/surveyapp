@@ -1,0 +1,59 @@
+exports.post = function (request, response) {
+
+    var u = request.user.userId;
+    var userinfo = u.split(":");
+    var provider = userinfo[0];
+    var userId = userinfo[1];
+
+    request.service.tables.getTable('User').where({
+        ProfileID: userId,
+    }).read({
+        success: function (user) {
+            if (user.length > 0) {
+                response.send(statusCodes.OK, user[0]);
+            } else {
+                request.user.getIdentities({
+                    success: function (identities) {
+                        var req = require('request');
+                        if (identities.facebook) {
+                            var fbAccessToken = identities.facebook.accessToken;
+                            var url = 'https://graph.facebook.com/me?access_token=' + fbAccessToken;
+                            req(url, function (err, resp, body) {
+                                if (err || resp.statusCode !== 200) {
+                                    console.error('Error sending data to FB Graph API: ', err);
+                                    request.respond(statusCodes.INTERNAL_SERVER_ERROR, body);
+                                } else {
+                                    try {
+                                        var userData = JSON.parse(body);
+                                        request.service.tables.getTable('User').insert({
+                                            ProfileID: userData.id,
+                                            UserName: userData.first_name + " " + userData.last_name,
+                                            ProfileAuthToken: fbAccessToken,
+                                            FirstName: userData.first_name,
+                                            LastName: userData.last_name
+                                        }, {
+                                            success: function (result) {
+                                                response.send(statusCodes.OK, result);
+                                            }
+                                        });
+                                    } catch (ex) {
+                                        console.error('Error parsing response from FB Graph API: ', ex);
+                                        request.respond(statusCodes.INTERNAL_SERVER_ERROR, ex);
+                                    }
+                                }
+                            });
+                        } else {
+                            console.log("not able to get facebook identity");
+                        }
+                    }
+                });
+            }
+        }
+    });
+};
+
+exports.get = function (request, response) {
+    response.send(statusCodes.OK, {
+        message: 'Hello World!'
+    });
+};
